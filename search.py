@@ -173,50 +173,52 @@ def uniformCostSearch(problem):
     fringe = util.PriorityQueue()
     goalPQ = util.PriorityQueue()
     start = problem.getStartState()
-    explored = Set([start])
     path = []
     ans = []
-    frontier = Set([])#expand fewer nodes than necessary...why does this work?!
+    inFringe = Set([])#closed set, meaning visited, to make sure the fringe has only unique nodes.
     if problem.isGoalState(start):
         return path
 
     startSucc = problem.getSuccessors(start)
+    explored = Set([start])
     for ssucc in startSucc:
         node = (ssucc[0], ssucc[1])
         tempPath = list(path)
         tempPath.append(ssucc[1])
         totalCost = problem.getCostOfActions(tempPath)
-        fringe.push(node, totalCost)
+        if node[0] not in inFringe:
+            fringe.push(node, totalCost)
+            inFringe.add(ssucc[0])
         #fringe: state, path, cost
-        frontier.add(ssucc[0])
-
         #loop through the priority queue
     while not fringe.isEmpty():
-        # if len(frontier) == 0:
+        # if len(inFringe) == 0:
         #     return [] #failure case????
         leaf = fringe.pop()
-        frontier.remove(leaf[0])
+        inFringe.remove(leaf[0])
         path = []
         # set path to be total path so far
         if type(leaf[1]) == str:
             path = [leaf[1],]
         else:
             path = leaf[1]
-        explored.add(leaf[0])
+        
         if problem.isGoalState(leaf[0]):
             goalNode = (leaf[0], leaf[1])
             goalCost = problem.getCostOfActions(leaf[1])
             goalPQ.push(goalNode, goalCost)
         else:
-            possMoves = problem.getSuccessors(leaf[0])
+            if leaf[0] not in explored:
+                possMoves = problem.getSuccessors(leaf[0])
+                explored.add(leaf[0])
             for succ in possMoves:
-                if succ[0] not in explored and succ[0] not in frontier:
+                if succ[0] not in explored and succ[0] not in inFringe:
                     tempPath = list(path)
                     tempPath.append(succ[1])
                     totalCost = problem.getCostOfActions(tempPath)
                     node = (succ[0],tempPath)
                     fringe.push(node, totalCost)
-                    frontier.add(succ[0])
+                    inFringe.add(succ[0]) #inFringe makes sure fringe is unique
     ansNode = goalPQ.pop()
     ans = ansNode[1]
     return ans
