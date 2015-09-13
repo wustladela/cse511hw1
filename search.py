@@ -174,7 +174,7 @@ def uniformCostSearch(problem):
     start = problem.getStartState()
     explored = Set([start])
     path = []
-    frontier = Set([])
+    #frontier = Set([start])
     if problem.isGoalState(start):
         return path
     startSucc = problem.getSuccessors(start)
@@ -185,33 +185,32 @@ def uniformCostSearch(problem):
         totalCost = problem.getCostOfActions(tempPath)
         fringe.push(node, totalCost)
         #fringe: state, totalPath, totalCost
-        frontier.add(ssucc[0])
+        #frontier.add(ssucc[0])
     while not fringe.isEmpty():
-        if frontier.isEmpty():
-            return []
+
         leaf = fringe.pop()
-        frontier.remove(leaf[0])
+        #frontier.remove(leaf[0])
         path = []
-        # set path to be total path
+        # set path to be total path? needed?
         if type(leaf[1]) == str:
             path = [leaf[1],]
         else:
             path = leaf[1]
-
-        explored.add(leaf[0])
+        # check goal state now!
         if problem.isGoalState(leaf[0]):
             return path
-        else:
-            possMoves = problem.getSuccessors(leaf[0])
-            for succ in possMoves:
-                if succ[0] not in explored and succ[0] not in frontier:
-                    tempPath = list(path)
-                    tempPath.append(succ[1])
-                    totalCost = problem.getCostOfActions(tempPath)
-                    node = (succ[0],tempPath)
-                    fringe.push(node, totalCost)
-                    frontier.add(succ[0])
-    
+
+        explored.add(leaf[0])
+        children = problem.getSuccessors(leaf[0])
+        for child in children:
+            if child[0] not in explored:# and child[0] not in #frontier:
+                tempPath = list(path)
+                tempPath.append(child[1])
+                totalCost = problem.getCostOfActions(tempPath)
+                tempNode = (child[0], tempPath) # state, totalPath
+                fringe.push(node, totalCost)
+                #frontier.add(child[0])
+    # failure?
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
