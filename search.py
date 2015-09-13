@@ -170,58 +170,48 @@ def uniformCostSearch(problem):
     from sets import Set
     from game import Directions
 
-    """
-    if start is goal state, return
-    if not, add start and its total cost to PQ
-    check if its successors are goal states
-    if not, add successors to fringePQ
-
-    While fringePQ is not empty
-        pop off the first node (each node is (state, full path))
-        check goal state of all successors, 
-        add all of them to PQ: item, Priority,
-        item = (action, path), Priority = cost
-    """
-    
     fringe = util.PriorityQueue()
-    startState = problem.getStartState()
+    start = problem.getStartState()
+    explored = Set([start])
     path = []
-    if problem.isGoalState(startState):
+    frontier = Set([])
+    if problem.isGoalState(start):
         return path
-    startSuccessors = problem.getSuccessors(startState)
-    explored = Set([startState])
-    for eachS in startSuccessors:
-        if problem.isGoalState(eachS[0]):
-            return eachS[1]
-        node = (eachS[0], eachS[1]) #state, action
-        #print "eachS 193 is: %s"%(eachS,)-->  eachS 193 is: ((33, 16), 'West', 1)
-        #print "node 194 is:%s"%(node,) -->  node 194 is:((33, 16), 'West')
-        tempPath = []
-        tempPath.append(node[1])
-        #print "tempPath is: %s"%(tempPath,)
+    startSucc = problem.getSuccessors(start)
+    for ssucc in startSucc:
+        node = (ssucc[0], ssucc[1])
+        tempPath = list(path)
+        tempPath.append(ssucc[1])
         totalCost = problem.getCostOfActions(tempPath)
-        #print "total cost: %d"%(totalCost)
         fringe.push(node, totalCost)
-
+        #fringe: state, totalPath, totalCost
+        frontier.add(ssucc[0])
     while not fringe.isEmpty():
-        newNode = fringe.pop()
-        # print "newNode:%s"%(newNode,) -->  newNode:((34, 15), 'South')
-        allSuccessors = problem.getSuccessors(newNode[0])
-        explored.add(newNode[0])
-        for each in allSuccessors:
-            if problem.isGoalState(each[0]):
-                return each[1]
-            else:
-                if each[0] not in explored:
-                    tempNode = (each[0], each[1])
-                    tempPath = []
-                    tempPath.append(each[1])
-                    tempPath.append(node[1])
-                    print "tempPath is: %s"%(tempPath,)
-                    # print "tempNode is: %s, %s"%(tempNode[0], tempNode[1])
+        if frontier.isEmpty():
+            return []
+        leaf = fringe.pop()
+        frontier.remove(leaf[0])
+        path = []
+        # set path to be total path
+        if type(leaf[1]) == str:
+            path = [leaf[1],]
+        else:
+            path = leaf[1]
+
+        explored.add(leaf[0])
+        if problem.isGoalState(leaf[0]):
+            return path
+        else:
+            possMoves = problem.getSuccessors(leaf[0])
+            for succ in possMoves:
+                if succ[0] not in explored and succ[0] not in frontier:
+                    tempPath = list(path)
+                    tempPath.append(succ[1])
                     totalCost = problem.getCostOfActions(tempPath)
-                    print "total cost: %d"%(totalCost)
-                    fringe.push(tempNode, totalCost) #make sure no explored node is pushed
+                    node = (succ[0],tempPath)
+                    fringe.push(node, totalCost)
+                    frontier.add(succ[0])
+    
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
