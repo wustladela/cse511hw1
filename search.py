@@ -41,7 +41,7 @@ class SearchProblem:
 
         For a given state, this should return a list of triples,
         (successor, action, stepCost), where 'successor' is a
-        successor to the current state, 'action' is the action
+        successor state to the current state, 'action' is the action
         required to get there, and 'stepCost' is the incremental
         cost of expanding to that successor
         """
@@ -87,53 +87,38 @@ def depthFirstSearch(problem):
 
     from sets import Set
     from game import Directions
-
     fringe = util.Stack()
     start = problem.getStartState()
     explored = Set([start])
+    inFringe = Set([])
     path = []
-
     if problem.isGoalState(start):
         return path
-
-        """
-        get successors:
-          state: Search state
-
-        For a given state, this should return a list of triples,
-        (successor, action, stepCost), where 'successor' is a
-        successor to the current state, 'action' is the action
-        required to get there, and 'stepCost' is the incremental
-        cost of expanding to that successor
-        """
     startSucc = problem.getSuccessors(start)
     for ssucc in startSucc:
         node = (ssucc[0], ssucc[1])
-        print "node is: %s" %(node,)
         fringe.push(node)
+        inFringe.add(ssucc[0])
     while not fringe.isEmpty():
-        if not fringe:#???
-            return []
         leaf = fringe.pop()
-        #print "popped leaf is: %s"%(leaf,)
+        inFringe.remove(leaf[0])
         path = []
-        if type(leaf[1]) == str:#if there is only one node.
+        if type(leaf[1]) == str:
             path = [leaf[1],]
-        else: 
+        else:
             path = leaf[1]
         explored.add(leaf[0])
         if problem.isGoalState(leaf[0]):
             return path
         else:
             possMoves = problem.getSuccessors(leaf[0])
-            #print "possible moves:"
             for succ in possMoves:
-                if succ[0] not in explored:
+                if succ[0] not in explored and succ[0] not in inFringe:
                     tempPath = list(path)
                     tempPath.append(succ[1])
                     node = (succ[0],tempPath)
                     fringe.push(node)
-
+                    inFringe.add(succ[0])
 
     util.raiseNotDefined()
 
@@ -149,18 +134,21 @@ def breadthFirstSearch(problem):
     start = problem.getStartState()
     explored = Set([start])
     path = []
+    inFringe = Set([])
     if problem.isGoalState(start):
         return path
     startSucc = problem.getSuccessors(start)
     for ssucc in startSucc:
         node = (ssucc[0], ssucc[1])
         fringe.push(node)
+        inFringe.add(ssucc[0])
     while not fringe.isEmpty():
         leaf = fringe.pop()
+        inFringe.remove(leaf[0])
         path = []
         if type(leaf[1]) == str:
             path = [leaf[1],]
-        else: 
+        else:
             path = leaf[1]
         explored.add(leaf[0])
         if problem.isGoalState(leaf[0]):
@@ -168,51 +156,72 @@ def breadthFirstSearch(problem):
         else:
             possMoves = problem.getSuccessors(leaf[0])
             for succ in possMoves:
-                if succ[0] not in explored and succ[0] not in fringe.list:
+                if succ[0] not in explored and succ[0] not in inFringe:
                     tempPath = list(path)
                     tempPath.append(succ[1])
                     node = (succ[0],tempPath)
                     fringe.push(node)
+                    inFringe.add(succ[0])
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
-    "Search the node of least total cost first. "
+    "Search the node of least *total* cost first. "
     "*** YOUR CODE HERE ***"
     from sets import Set
     from game import Directions
 
-    fringe = util.Stack()
-    start = problem.getStartState()
-    explored = Set([start])
+    """
+    if start is goal state, return
+    if not, add start and its total cost to PQ
+    check if its successors are goal states
+    if not, add successors to fringePQ
+
+    While fringePQ is not empty
+        pop off the first node (each node is (state, full path))
+        check goal state of all successors, 
+        add all of them to PQ: item, Priority,
+        item = (action, path), Priority = cost
+    """
+    
+    fringe = util.PriorityQueue()
+    startState = problem.getStartState()
     path = []
-
-    if problem.isGoalState(start):
+    if problem.isGoalState(startState):
         return path
-    allSuccessors = problem.getSuccessors(start)
-
-
-    
-    
-    for eachS in allSuccessors:
+    startSuccessors = problem.getSuccessors(startState)
+    explored = Set([startState])
+    for eachS in startSuccessors:
         if problem.isGoalState(eachS[0]):
-            path.append(eachS[1])
-            return path
-        print "each successor, action, stepCost: %s"%(eachS,)
-        print "each stepcost: %s"%(eachS[2])
+            return eachS[1]
+        node = (eachS[0], eachS[1]) #state, action
+        #print "eachS 193 is: %s"%(eachS,)-->  eachS 193 is: ((33, 16), 'West', 1)
+        #print "node 194 is:%s"%(node,) -->  node 194 is:((33, 16), 'West')
+        tempPath = []
+        tempPath.append(node[1])
+        #print "tempPath is: %s"%(tempPath,)
+        totalCost = problem.getCostOfActions(tempPath)
+        #print "total cost: %d"%(totalCost)
+        fringe.push(node, totalCost)
 
-    minNode = min(allSuccessors, key = lambda k: k[2])
-    print "mininum cost Node: %s"%(minNode,)
-
-    #expand the cheapest node and keep going
-    # fringe.push(minNode)
-    # while not fringe.isEmpty():
-    #     leafNode = fringe.pop()
-    #     path = []
-    #     if type(leafNode[1]) == str:
-    #         path = [leaf[1],]
-    #     else:
-
-
+    while not fringe.isEmpty():
+        newNode = fringe.pop()
+        # print "newNode:%s"%(newNode,) -->  newNode:((34, 15), 'South')
+        allSuccessors = problem.getSuccessors(newNode[0])
+        explored.add(newNode[0])
+        for each in allSuccessors:
+            if problem.isGoalState(each[0]):
+                return each[1]
+            else:
+                if each[0] not in explored:
+                    tempNode = (each[0], each[1])
+                    tempPath = []
+                    tempPath.append(each[1])
+                    tempPath.append(node[1])
+                    print "tempPath is: %s"%(tempPath,)
+                    # print "tempNode is: %s, %s"%(tempNode[0], tempNode[1])
+                    totalCost = problem.getCostOfActions(tempPath)
+                    print "total cost: %d"%(totalCost)
+                    fringe.push(tempNode, totalCost) #make sure no explored node is pushed
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
