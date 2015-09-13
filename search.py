@@ -171,11 +171,12 @@ def uniformCostSearch(problem):
     from game import Directions
 
     fringe = util.PriorityQueue()
+    goalPQ = util.PriorityQueue()
     start = problem.getStartState()
     explored = Set([start])
     path = []
     ans = []
-    frontier = Set([])
+    frontier = Set([])#expand fewer nodes than necessary...why does this work?!
     if problem.isGoalState(start):
         return path
 
@@ -186,14 +187,13 @@ def uniformCostSearch(problem):
         tempPath.append(ssucc[1])
         totalCost = problem.getCostOfActions(tempPath)
         fringe.push(node, totalCost)
-        #fringe: state, totalPath, totalCost
+        #fringe: state, path, cost
         frontier.add(ssucc[0])
 
         #loop through the priority queue
     while not fringe.isEmpty():
-        if len(frontier) == 0:
-            return [] #failure
-
+        # if len(frontier) == 0:
+        #     return [] #failure case????
         leaf = fringe.pop()
         frontier.remove(leaf[0])
         path = []
@@ -202,25 +202,11 @@ def uniformCostSearch(problem):
             path = [leaf[1],]
         else:
             path = leaf[1]
-
         explored.add(leaf[0])
         if problem.isGoalState(leaf[0]):
-            if not fringe.isEmpty():
-                ans = path
-                lastCheck = problem.getSuccessors(leaf[0])
-                
-                for lastSucc in lastCheck:
-                    if lastSucc[0] not in explored:
-                        tempPath = list(path)
-                        tempPath.append(lastSucc[1])
-                        totalCost = problem.getCostOfActions(tempPath)
-                        if totalCost<leaf[2]:
-                            ans = tempPath
-
-                return path
-            else:
-                return path
-
+            goalNode = (leaf[0], leaf[1])
+            goalCost = problem.getCostOfActions(leaf[1])
+            goalPQ.push(goalNode, goalCost)
         else:
             possMoves = problem.getSuccessors(leaf[0])
             for succ in possMoves:
@@ -231,7 +217,9 @@ def uniformCostSearch(problem):
                     node = (succ[0],tempPath)
                     fringe.push(node, totalCost)
                     frontier.add(succ[0])
-    return []
+    ansNode = goalPQ.pop()
+    ans = ansNode[1]
+    return ans
 
 def nullHeuristic(state, problem=None):
     """
