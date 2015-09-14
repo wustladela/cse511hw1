@@ -234,6 +234,63 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
+
+    from sets import Set
+    from game import Directions
+
+    fringe = util.PriorityQueue()
+    start = problem.getStartState()
+    path = []
+    ans = []
+    inFringe = Set([])#closed set, to make sure the fringe has only unique nodes.
+    if problem.isGoalState(start):
+        return path
+
+    startSucc = problem.getSuccessors(start)
+    explored = Set([start])
+    for ssucc in startSucc:
+        node = (ssucc[0], ssucc[1])
+        tempPath = list(path)
+        tempPath.append(ssucc[1])
+        totalCost = problem.getCostOfActions(tempPath)+nullHeuristic(node[0])
+        if node[0] not in inFringe:
+            fringe.push(node, totalCost)
+            inFringe.add(ssucc[0])
+        #fringe: state, path, cost
+    while not fringe.isEmpty():
+        # if len(inFringe) == 0:
+        #     return [] #failure case????
+        leaf = fringe.pop()
+        inFringe.remove(leaf[0])
+        # set path to be total path so far
+        if type(leaf[1]) == str:
+            path = [leaf[1],]
+        else:
+            path = leaf[1]
+        # set a minCost that will be the solution with min Cost for all
+        minCost = 999999
+        if problem.isGoalState(leaf[0]):
+            thisMinCost = problem.getCostOfActions(leaf[1])+nullHeuristic(leaf[0])
+            if thisMinCost < minCost:
+                minCost = thisMinCost
+                minNode = (leaf[0], leaf[1])
+        else:
+            # check if we need to expand this leaf node.    
+            leafCost = problem.getCostOfActions(path)
+            if leaf[0] not in explored and leaf[0] not in inFringe and leafCost<minCost:
+                possMoves = problem.getSuccessors(leaf[0])
+                explored.add(leaf[0])
+            for succ in possMoves:
+                if succ[0] not in explored and succ[0] not in inFringe:
+                    tempPath = list(path)
+                    tempPath.append(succ[1])
+                    totalCost = problem.getCostOfActions(tempPath)+nullHeuristic(succ[0])
+                    if totalCost < minCost:
+                        node = (succ[0],tempPath)
+                        fringe.push(node, totalCost)
+                        inFringe.add(succ[0]) #inFringe makes sure fringe is unique
+
+    return minNode[1]
     util.raiseNotDefined()
 
 
