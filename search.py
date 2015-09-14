@@ -175,7 +175,7 @@ def uniformCostSearch(problem):
     start = problem.getStartState()
     path = []
     ans = []
-    inFringe = Set([])#closed set, meaning visited, to make sure the fringe has only unique nodes.
+    inFringe = Set([])#closed set, to make sure the fringe has only unique nodes.
     if problem.isGoalState(start):
         return path
 
@@ -208,7 +208,18 @@ def uniformCostSearch(problem):
             goalCost = problem.getCostOfActions(leaf[1])
             goalPQ.push(goalNode, goalCost)
         else:
-            if leaf[0] not in explored:
+            if not goalPQ.isEmpty():
+                # get the current best solution and make sure it doesn't expand the more expensive ones
+                currentSolution = goalPQ.pop()
+                currentMinCost = problem.getCostOfActions(currentSolution[1])
+                # push it back, we need to pop it when we get the final answer
+                goalPQ.push(currentSolution, currentMinCost) 
+            else:
+                currentMin = 999999
+
+            # check if we need to expand this leaf node.    
+            leafCost = problem.getCostOfActions(path)
+            if leaf[0] not in explored and leafCost<currentMin:
                 possMoves = problem.getSuccessors(leaf[0])
                 explored.add(leaf[0])
             for succ in possMoves:
@@ -216,9 +227,10 @@ def uniformCostSearch(problem):
                     tempPath = list(path)
                     tempPath.append(succ[1])
                     totalCost = problem.getCostOfActions(tempPath)
-                    node = (succ[0],tempPath)
-                    fringe.push(node, totalCost)
-                    inFringe.add(succ[0]) #inFringe makes sure fringe is unique
+                    if totalCost < currentMin:
+                        node = (succ[0],tempPath)
+                        fringe.push(node, totalCost)
+                        inFringe.add(succ[0]) #inFringe makes sure fringe is unique
     ansNode = goalPQ.pop()
     ans = ansNode[1]
     return ans
