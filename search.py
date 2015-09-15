@@ -181,13 +181,14 @@ def uniformCostSearch(problem):
         return path
 
     startSucc = problem.getSuccessors(start)
-    explored = Set([start])
+    explored = [start]
+
     for ssucc in startSucc:
         node = (ssucc[0], ssucc[1])
         tempPath = list(path)
         tempPath.append(ssucc[1])
         totalCost = problem.getCostOfActions(tempPath)
-        if node[0] not in inFringe:
+        if node[0] not in inFringe and node[0] not in explored:
             fringe.push(node, totalCost)
             inFringe.add(ssucc[0])
         #fringe: state, path, cost
@@ -204,7 +205,7 @@ def uniformCostSearch(problem):
         else:
             path = leaf[1]
         # set a minCost that will be the solution with min Cost for all
-        minCost = 968719479864
+        minCost = 99968719479864 #get the max number... ANY BETTER WAY?
         if problem.isGoalState(leaf[0]):
             thisMinCost = problem.getCostOfActions(leaf[1])
             if thisMinCost < minCost:
@@ -213,14 +214,16 @@ def uniformCostSearch(problem):
             goalNode = (leaf[0], leaf[1])
             goalCost = problem.getCostOfActions(leaf[1])
             goalPQ.push(goalNode, goalCost)
+
+            return list(minNode[1])
         else:
             # check if we need to expand this leaf node.    
             leafCost = problem.getCostOfActions(path)
-            if leaf[0] not in explored and leaf[0] not in inFringe and leafCost<minCost:
+            if not explored.__contains__(leaf[0]): # and leaf[0] not in inFringe and leafCost<minCost:
 
             #if leaf[0] not in explored:
                 possMoves = problem.getSuccessors(leaf[0])
-                explored.add(leaf[0])
+                explored.append(leaf[0])
                 for succ in possMoves:
                     if succ[0] not in explored and succ[0] not in inFringe:
                         tempPath = list(path)
