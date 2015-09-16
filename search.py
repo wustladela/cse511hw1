@@ -172,46 +172,28 @@ def uniformCostSearch(problem):
 
     fringe = util.PriorityQueue()
     goalPQ = util.PriorityQueue()#solutions
-
     start = problem.getStartState()
     path = []
-    ans = []
-    counter = 0;
-    ansNode = []
+    minCost = 923372036854775807
     inFringe = Set([])#closed set, meaning visited, to make sure the fringe has only unique nodes.
     if problem.isGoalState(start):
         return path
-
-    startSucc = problem.getSuccessors(start)
-    explored = [start]#expanded
-    for ssucc in startSucc:
-        node = (ssucc[0], ssucc[1])
-        tempPath = list(path)
-        tempPath.append(ssucc[1])
-        totalCost = problem.getCostOfActions(tempPath)
-        if node[0] not in inFringe and node[0] not in explored:
-            fringe.push(node, totalCost)
-            inFringe.add(ssucc[0])
+    explored = []#expanded
+    startNode = (start, [])
+    fringe.push(startNode, 0)
+    inFringe.add(startNode[0])
+    
     while not fringe.isEmpty():
         leaf = fringe.pop()
         inFringe.remove(leaf[0])
-        path = []
-        # set path to be total path so far
-        if type(leaf[1]) == str:
-            path = [leaf[1],]
-        else:
-            path = leaf[1]
-
-        print "cost of leaf:"
+        path = leaf[1]
         tempCost = problem.getCostOfActions(path)
-        print tempCost
-        print "----"
-        minCost = 99968719479864
         if problem.isGoalState(leaf[0]):
             #return leaf[1]
             thisMinCost = problem.getCostOfActions(leaf[1])
             if thisMinCost < minCost:
                 minCost = thisMinCost
+                print "yes!!!"
             goalNode = (leaf[0], leaf[1])
             goalCost = problem.getCostOfActions(leaf[1])
             goalPQ.push(goalNode, goalCost)
@@ -221,15 +203,11 @@ def uniformCostSearch(problem):
             if leaf[0] not in explored and leafCost < minCost:
                 possMoves = problem.getSuccessors(leaf[0])
                 explored.append(leaf[0])
-                counter = counter+1
                 for succ in possMoves:
                     if succ[0] not in explored and succ[0] not in inFringe:
                         tempPath = list(path)
                         tempPath.append(succ[1])
                         totalCost = problem.getCostOfActions(tempPath)
-                        print "totalCost after tempPath:"
-                        print totalCost
-                        print "----"
                         if totalCost < minCost:
                             node = (succ[0],tempPath)
                             fringe.push(node, totalCost)
@@ -238,8 +216,6 @@ def uniformCostSearch(problem):
         ansNode = goalPQ.pop()
         ans = ansNode[1]
     return ans
-    
-
 def nullHeuristic(state, problem=None):
     """
     A heuristic function estimates the cost from the current state to the nearest
