@@ -171,18 +171,19 @@ def uniformCostSearch(problem):
     from game import Directions
 
     fringe = util.PriorityQueue()
-    goalPQ = util.PriorityQueue()
+    goalPQ = util.PriorityQueue()#solutions
 
     start = problem.getStartState()
     path = []
     ans = []
+    counter = 0;
     ansNode = []
     inFringe = Set([])#closed set, meaning visited, to make sure the fringe has only unique nodes.
     if problem.isGoalState(start):
         return path
 
     startSucc = problem.getSuccessors(start)
-    explored = [start]
+    explored = [start]#expanded
     for ssucc in startSucc:
         node = (ssucc[0], ssucc[1])
         tempPath = list(path)
@@ -200,8 +201,14 @@ def uniformCostSearch(problem):
             path = [leaf[1],]
         else:
             path = leaf[1]
+
+        print "cost of leaf:"
+        tempCost = problem.getCostOfActions(path)
+        print tempCost
+        print "----"
         minCost = 99968719479864
         if problem.isGoalState(leaf[0]):
+            #return leaf[1]
             thisMinCost = problem.getCostOfActions(leaf[1])
             if thisMinCost < minCost:
                 minCost = thisMinCost
@@ -214,11 +221,15 @@ def uniformCostSearch(problem):
             if leaf[0] not in explored and leafCost < minCost:
                 possMoves = problem.getSuccessors(leaf[0])
                 explored.append(leaf[0])
+                counter = counter+1
                 for succ in possMoves:
                     if succ[0] not in explored and succ[0] not in inFringe:
                         tempPath = list(path)
                         tempPath.append(succ[1])
                         totalCost = problem.getCostOfActions(tempPath)
+                        print "totalCost after tempPath:"
+                        print totalCost
+                        print "----"
                         if totalCost < minCost:
                             node = (succ[0],tempPath)
                             fringe.push(node, totalCost)
