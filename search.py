@@ -165,52 +165,65 @@ def breadthFirstSearch(problem):
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
-    "Search the node of least *total* cost first. "
-    "*** YOUR CODE HERE ***"
     from sets import Set
     from game import Directions
+    #push all nodes to fringe and make sure they only get popped off once
     fringe = util.PriorityQueue()
     start = problem.getStartState()
-    inFringe = Set([])
-    explored = []
-    startNode = (start, [], [])
-    """
-    get successors return: state, action, cost
-    
-    Node: state, action, path, parentNode
-    """
+    path = []
+    fringed = {}    
+    counter = 0;
+    ansNode = []
+    inFringe = Set([])#closed set, meaning visited, to make sure the fringe has only unique nodes.
     if problem.isGoalState(start):
-        return []
-
-    startChildren = problem.getSuccessors(start)
-    for child in startChildren:
-        childPath = child[1]
-        if type(childPath) == str:
-            childPath = [childPath,]
-        childNode = (child[0], child[1], childPath, startNode)
-        childCost = child[2]
-        fringe.push(childNode, childCost)
-        inFringe.add(child[0])
-
+        return path
+    startSucc = problem.getSuccessors(start)
+    explored = [start]#expanded
+    for ssucc in startSucc:
+        node = (ssucc[0], ssucc[1])
+        tempPath = list(path)
+        tempPath.append(ssucc[1])
+        totalCost = problem.getCostOfActions(tempPath)
+        if node[0] not in inFringe and node[0] not in explored:
+            fringe.push(node, totalCost)
+            inFringe.add(ssucc[0])
     while not fringe.isEmpty():
         leaf = fringe.pop()
         inFringe.remove(leaf[0])
-        if problem.isGoalState(leaf):
-            fullPath = list(parent[1])
-            fullPath = fullPath.append(leaf[2])
-            return fullPath
+        path = []
+        if type(leaf[1]) == str:
+            path = [leaf[1],]
+        else:
+            path = leaf[1]
+        tempCost = problem.getCostOfActions(path)
+        if problem.isGoalState(leaf[0]):
+            return leaf[1]
+        else:
+            # check if we need to expand this leaf node
+            leafCost = problem.getCostOfActions(path)
+            if leaf[0] not in explored:
+                possMoves = problem.getSuccessors(leaf[0])
+                explored.append(leaf[0])
+                counter = counter+1
+                for succ in possMoves:
+                    if succ[0] not in explored and succ[0] not in inFringe:
+                        tempPath = list(path)
+                        tempPath.append(succ[1])
+                        totalCost = problem.getCostOfActions(tempPath)
+                        node = (succ[0],tempPath)
+                        fringe.push(node, totalCost)
+                        inFringe.add(succ[0])
+                        fringed[succ[0]]=totalCost
+                    # elif succ[0] in inFringe:
+                    #     oldCost = fringed[succ[0]]
+                    #     tempPath = list(path)
+                    #     tempPath.append(succ[1])
+                    #     newCost = problem.getCostOfActions(tempPath)
+                        # if oldCost>newCost:
+                            
+                        # else:
+                        #     print "ok"
 
-        if leaf[0] not in explored and leaf[0] not in inFringe:
-            children = problem.getSuccessors(leaf[0])
-            explored.append(leaf[0])
-            for child in children:
-                childPath = list(leaf[2])
-                childPath.append(child[1])
-                childNode = (child[0], child[1], childPath, leaf)
-                childCost = problem.getCostOfActions(childNode[2])
-                if childNode[0] not in explored and childNode[0] not in inFringe:
-                    fringe.push(childNode, childCost)
-                    inFringe.add(childNode[0])
 
 def nullHeuristic(state, problem=None):
     """
